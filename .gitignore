@@ -5,3 +5,5 @@
 *.lst
 *.lss
 *.map
+*.vscode
+*.json
