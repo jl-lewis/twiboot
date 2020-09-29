@@ -54,8 +54,10 @@ ifeq ($(MCU), atmega328p)
 # Fuse H: 0xdc (512 words bootloader)
 # Fuse E: 0xfd (2.7V BOD)
 AVRDUDE_MCU=m328p -F
-#AVRDUDE_FUSES=lfuse:w:0xc2:m hfuse:w:0xdc:m efuse:w:0xfd:m
-AVRDUDE_FUSES=lfuse:w:0xd2:m hfuse:w:0xdc:m efuse:w:0xfd:m
+#AVRDUDE_MCU=m328p
+AVRDUDE_FUSES=lock:w:0xFF:m lfuse:w:0xc2:m hfuse:w:0xdc:m efuse:w:0xfd:m 
+#AVRDUDE_FUSES=lfuse:w:0xd2:m hfuse:w:0xdc:m efuse:w:0xfd:m
+AVRDUDE_LOCK=lock:w:0xCF:m
 
 BOOTLOADER_START=0x7C00
 endif
@@ -86,8 +88,10 @@ $(TARGET).elf: $(SOURCE:.c=.o)
 clean:
 	rm -rf $(SOURCE:.c=.o) $(SOURCE:.c=.lst) $(addprefix $(TARGET), .elf .map .lss .hex .bin)
 
-install: $(TARGET).elf
-	avrdude $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -U flash:w:$(<:.elf=.hex)
-
 fuses:
-	avrdude $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) $(patsubst %,-U %, $(AVRDUDE_FUSES))
+	avrdude -v $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -e -u $(patsubst %,-U %, $(AVRDUDE_FUSES))	
+
+install: $(TARGET).elf
+	avrdude -v $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -D -U flash:w:$(<:.elf=.hex) -D -u -Ulock:w:0xCF:m
+
+
