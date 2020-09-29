@@ -35,12 +35,12 @@
 #define TIMER_MSEC2IRQCNT(x)    (x / TIMER_IRQFREQ_MS)
 
 #if LED_SUPPORT
-#define LED_INIT()          DDRB = ((1<<PORTB4) | (1<<PORTB5))
+#define LED_INIT()          DDRB = ((1<<PORTB4) | (1<<PORTB7))
 #define LED_RT_ON()         PORTB |= (1<<PORTB4)
 #define LED_RT_OFF()        PORTB &= ~(1<<PORTB4)
-#define LED_GN_ON()         PORTB |= (1<<PORTB5)
-#define LED_GN_OFF()        PORTB &= ~(1<<PORTB5)
-#define LED_GN_TOGGLE()     PORTB ^= (1<<PORTB5)
+#define LED_GN_ON()         PORTB |= (1<<PORTB7)
+#define LED_GN_OFF()        PORTB &= ~(1<<PORTB7)
+#define LED_GN_TOGGLE()     PORTB ^= (1<<PORTB7)
 #define LED_OFF()           PORTB = 0x00
 #else
 #define LED_INIT()
