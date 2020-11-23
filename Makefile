@@ -91,7 +91,13 @@ clean:
 fuses:
 	avrdude -v $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -e -u $(patsubst %,-U %, $(AVRDUDE_FUSES))	
 
+verifyfuses:
+	avrdude -v $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -Ulfuse:v:0xc2:m	
+
 install: $(TARGET).elf
 	avrdude -v $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -D -U flash:w:$(<:.elf=.hex) -D -u -Ulock:w:0xCF:m
+
+read: 
+	avrdude $(AVRDUDE_PROG) -p $(AVRDUDE_MCU) -D -U flash:r:avrduderead.hex:i
 
 
