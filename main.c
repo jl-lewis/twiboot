@@ -22,9 +22,9 @@
 #include <avr/pgmspace.h>
 
 #define VERSION_STRING      "TWIBOOT v3.0"
-#define EEPROM_SUPPORT      1
+#define EEPROM_SUPPORT      0
 #define LED_SUPPORT         1
-#define USE_CLOCKSTRETCH    0
+#define USE_CLOCKSTRETCH    1
 
 #define F_CPU               8000000ULL
 #define TIMER_DIVISOR       1024
@@ -228,15 +228,15 @@ static uint8_t TWI_data_write(uint8_t bcnt, uint8_t data)
     uint8_t ack = 0x01;
 
     switch (bcnt)
-    {
+    {   //byte 0: first cmd
         case 0:
             switch (data)
             {
-                case CMD_SWITCH_APPLICATION:
-                case CMD_ACCESS_MEMORY:
+                case CMD_SWITCH_APPLICATION: //0x01
+                case CMD_ACCESS_MEMORY:      //0x02
                     /* no break */
 
-                case CMD_WAIT:
+                case CMD_WAIT: //0x00
                     /* abort countdown */
                     boot_timeout = 0;
                     cmd = data;
@@ -244,32 +244,32 @@ static uint8_t TWI_data_write(uint8_t bcnt, uint8_t data)
 
                 default:
                     /* boot app now */
-                    cmd = CMD_BOOT_APPLICATION;
+                    cmd = CMD_BOOT_APPLICATION; //0x20 | 0x01 (Switch Application)
                     ack = 0x00;
                     break;
             }
             break;
-
+        //byte 1: second cmd
         case 1:
             switch (cmd)
             {
-                case CMD_SWITCH_APPLICATION:
-                    if (data == BOOTTYPE_APPLICATION)
+                case CMD_SWITCH_APPLICATION: //0x01
+                    if (data == BOOTTYPE_APPLICATION) //0x80
                     {
-                        cmd = CMD_BOOT_APPLICATION;
+                        cmd = CMD_BOOT_APPLICATION; //0x20 | 0x01 (Sw App)
                     }
 
                     ack = 0x00;
                     break;
 
-                case CMD_ACCESS_MEMORY:
-                    if (data == MEMTYPE_CHIPINFO)
+                case CMD_ACCESS_MEMORY: //0x02
+                    if (data == MEMTYPE_CHIPINFO) //0x00
                     {
-                        cmd = CMD_ACCESS_CHIPINFO;
+                        cmd = CMD_ACCESS_CHIPINFO;//0x10 | CMD_ACCESS_MEMORY
                     }
-                    else if (data == MEMTYPE_FLASH)
+                    else if (data == MEMTYPE_FLASH)//0x01
                     {
-                        cmd = CMD_ACCESS_FLASH;
+                        cmd = CMD_ACCESS_FLASH;    //0x20
                     }
 #if (EEPROM_SUPPORT)
                     else if (data == MEMTYPE_EEPROM)
@@ -288,13 +288,13 @@ static uint8_t TWI_data_write(uint8_t bcnt, uint8_t data)
                     break;
             }
             break;
-
+        //byte 2-3 memory address
         case 2:
         case 3:
             addr <<= 8;
             addr |= data;
             break;
-
+        //all bytes after 0-3
         default:
             switch (cmd)
             {
@@ -311,12 +311,12 @@ static uint8_t TWI_data_write(uint8_t bcnt, uint8_t data)
                 case CMD_WRITE_EEPROM_PAGE:
 #endif /* (USE_CLOCKSTRETCH) */
 #endif /* (EEPROM_SUPPORT) */
-                case CMD_ACCESS_FLASH:
+                case CMD_ACCESS_FLASH: //0x20 | CMD ACCESS MEMORY
                 {
                     uint8_t pos = bcnt -4;
 
                     buf[pos] = data;
-                    if (pos >= (sizeof(buf) -2))
+                    if (pos >= (sizeof(buf) - 1))
                     {
                         ack = 0x00;
                     }
@@ -328,7 +328,7 @@ static uint8_t TWI_data_write(uint8_t bcnt, uint8_t data)
 #if (USE_CLOCKSTRETCH)
                         write_flash_page();
 #else
-                        cmd = CMD_WRITE_FLASH_PAGE;
+                        cmd = CMD_WRITE_FLASH_PAGE;//0x40 | CMD ACCESS MEMORY
 #endif
                     }
                     break;
