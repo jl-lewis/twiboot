@@ -21,6 +21,17 @@
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
 
+#ifndef SIGRD
+#define SIGRD 5
+
+#if defined(__AVR_ATmega328PB__)
+#define IDsize 10
+#else
+#define IDsize 9
+#endif
+
+#define IDbuffer IDsize
+
 #define VERSION_STRING      "TWIBOOT v3.0"
 #define EEPROM_SUPPORT      0
 #define LED_SUPPORT         1
@@ -134,6 +145,8 @@ static uint8_t cmd = CMD_WAIT;
 /* flash buffer */
 static uint8_t buf[SPM_PAGESIZE];
 static uint16_t addr;
+
+static uint8_t id[IDbuffer];
 
 /* *************************************************************************
  * write_flash_page
@@ -550,6 +563,11 @@ int main(void)
 #else
 #error "TCCR0(B) not defined"
 #endif
+
+    for (size_t i = 0; i < IDsize; i++)
+	{
+		id[i] = boot_signature_byte_get(0x0E + i + (IDsize == 9 && i > 5 ? 1 : 0));
+	}
 
     /* TWI init: set address, auto ACKs */
     TWAR = (TWI_ADDRESS<<1);
