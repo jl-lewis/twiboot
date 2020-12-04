@@ -71,6 +71,7 @@ Abort boot timeout | **SLA+W**, 0x00, **STO** |
 Show bootloader version | **SLA+W**, 0x01, **SLA+R**, {16 bytes}, **STO** | ASCII, not null terminated
 Start application | **SLA+W**, 0x01, 0x80, **STO** |
 Read chip info | **SLA+W**, 0x02, 0x00, 0x00, 0x00, **SLA+R**, {8 bytes}, **STO** | 3byte signature, 1byte page size, 2byte flash size, 2byte eeprom size
+Read chip ID | **SLA+W**, 0x02, 0x03, 0x00, 0x00, **SLA+R**, {9 bytes}, **STO** | 9byte ID/serial (10byte on 328PB)
 Read 1+ flash bytes | **SLA+W**, 0x02, 0x01, addrh, addrl, **SLA+R**, {* bytes}, **STO** |
 Read 1+ eeprom bytes | **SLA+W**, 0x02, 0x02, addrh, addrl, **SLA+R**, {* bytes}, **STO** |
 Write one flash page | **SLA+W**, 0x02, 0x01, addrh, addrl, {* bytes}, **STO** | page size as indicated in chip info
@@ -84,6 +85,10 @@ Write 1+ eeprom bytes | **SLA+W**, 0x02, 0x02, addrh, addrl, {* bytes}, **STO** 
 
 A flash page / eeprom write is only triggered after the Stop Condition.
 During the write process twiboot will NOT acknowledge its slave address.
+
+Signature device ID bytes (9 bytes generally, 10 bytes 328PB):
+Technically undocumented on some AVRs thus not guaranteed functional or unique, officially documented on 328PB
+Tested only on 328P thus far
 
 The multiboot_tool repository contains a simple linux application that uses
 this protocol to access the bootloader over linux i2c device.
