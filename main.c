@@ -23,6 +23,7 @@
 
 #ifndef SIGRD
 #define SIGRD 5
+#endif
 
 #if defined(__AVR_ATmega328PB__)
 #define IDsize 10
@@ -33,7 +34,7 @@
 #define IDbuffer IDsize
 
 #define VERSION_STRING      "TWIBOOT v3.0"
-#define EEPROM_SUPPORT      0
+#define EEPROM_SUPPORT      1
 #define LED_SUPPORT         1
 #define USE_CLOCKSTRETCH    1
 
@@ -77,6 +78,7 @@
 #define CMD_ACCESS_EEPROM       (0x30 | CMD_ACCESS_MEMORY)
 #define CMD_WRITE_FLASH_PAGE    (0x40 | CMD_ACCESS_MEMORY)
 #define CMD_WRITE_EEPROM_PAGE   (0x50 | CMD_ACCESS_MEMORY)
+#define CMD_ACCESS_ID           (0x60 | CMD_ACCESS_MEMORY)
 
 /* SLA+W */
 #define CMD_SWITCH_APPLICATION  CMD_READ_VERSION
@@ -92,6 +94,7 @@
 #define MEMTYPE_CHIPINFO        0x00
 #define MEMTYPE_FLASH           0x01
 #define MEMTYPE_EEPROM          0x02
+#define MEMTYPE_ID              0x03
 
 /*
  * LED_GN flashes with 20Hz (while bootloader is running)
@@ -284,6 +287,10 @@ static uint8_t TWI_data_write(uint8_t bcnt, uint8_t data)
                     {
                         cmd = CMD_ACCESS_FLASH;    //0x20
                     }
+                    else if (data == MEMTYPE_ID)   //0x03
+                    {
+                        cmd = CMD_ACCESS_ID;
+                    }
 #if (EEPROM_SUPPORT)
                     else if (data == MEMTYPE_EEPROM)
                     {
@@ -375,6 +382,11 @@ static uint8_t TWI_data_read(uint8_t bcnt)
         case CMD_ACCESS_CHIPINFO:
             bcnt %= sizeof(chipinfo);
             data = chipinfo[bcnt];
+            break;
+
+        case CMD_ACCESS_ID:
+            bcnt %= sizeof(id);
+            data = id[bcnt];
             break;
 
         case CMD_ACCESS_FLASH:
